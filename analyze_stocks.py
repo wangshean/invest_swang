@@ -1,5 +1,7 @@
 import os
-import openai
+from openai import OpenAI
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 import requests
 from typing import List
 
@@ -23,14 +25,11 @@ def fetch_latest_news(stock_id: str, api_key: str) -> str:
 
 def request_openai(prompt: str) -> str:
     """Send a prompt to the OpenAI API and return the response."""
-    openai.api_key = os.getenv("OPENAI_API_KEY")
-    if not openai.api_key:
+    if os.getenv("OPENAI_API_KEY") is None:
         raise ValueError("OPENAI_API_KEY environment variable is not set")
-    completion = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": prompt}],
-    )
-    return completion.choices[0].message["content"].strip()
+    completion = client.chat.completions.create(model="gpt-3.5-turbo",
+    messages=[{"role": "user", "content": prompt}])
+    return completion.choices[0].message.content.strip()
 
 
 def analyze_stock(stock_id: str, news_api_key: str) -> str:
@@ -40,6 +39,7 @@ def analyze_stock(stock_id: str, news_api_key: str) -> str:
         "Predict today's maximum and minimum price for this stock and suggest"
         " whether to buy, sell, or take no action today."
     )
+    print(prompt)
     return request_openai(prompt)
 
 
